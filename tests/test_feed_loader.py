@@ -1,6 +1,20 @@
 from datetime import datetime, timezone
+from pathlib import Path
 
 from rss2md.models import Feed, FeedEntry
+
+
+def test_load_feed_parses_local_fixture():
+    from rss2md.feed_loader import load_feed
+
+    fixture = Path("tests/fixtures/sample_feed.xml")
+
+    feed, entries = load_feed(str(fixture))
+
+    assert feed.title == "Sample Feed"
+    assert len(entries) == 2
+    assert entries[0].title == "First Entry"
+    assert entries[0].source_feed_title == "Sample Feed"
 
 
 def test_feed_entry_model_holds_normalized_fields():
