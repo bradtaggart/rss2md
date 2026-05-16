@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+
 from rss2md.models import Feed, FeedEntry
 
 
@@ -82,3 +84,34 @@ def test_feed_entry_tags_default_to_a_fresh_list_per_instance():
 
     assert first.tags == ["rss"]
     assert second.tags == []
+
+
+def test_load_feed_raises_clear_error_for_missing_local_file(tmp_path):
+    from rss2md.feed_loader import FeedLoadError, load_feed
+
+    missing = tmp_path / "missing.xml"
+
+    with pytest.raises(FeedLoadError, match="Unable to read local feed"):
+        load_feed(str(missing))
+
+
+def test_load_feed_raises_clear_error_for_http_failure(monkeypatch):
+    from rss2md.feed_loader import FeedLoadError, load_feed
+
+    def fake_fetch(_url: str) -> str:
+        raise FeedLoadError("Unable to fetch remote feed: boom")
+
+    monkeypatch.setattr("rss2md.feed_loader._fetch_remote_text", fake_fetch)
+
+    with pytest.raises(FeedLoadError, match="Unable to fetch remote feed"):
+        load_feed("https://example.com/feed.xml")
+
+
+def test_parse_failure_raises_clear_error(tmp_path):
+    from rss2md.feed_loader import FeedLoadError, load_feed
+
+    bad = tmp_path / "bad.xml"
+    bad.write_text("<rss><channel>", encoding="utf-8")
+
+    with pytest.raises(FeedLoadError, match="Unable to parse feed"):
+        load_feed(str(bad))

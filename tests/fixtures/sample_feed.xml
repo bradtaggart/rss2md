@@ -1,0 +1,23 @@
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Sample Feed</title>
+    <link>https://example.com</link>
+    <description>Example description</description>
+    <item>
+      <title>First Entry</title>
+      <link>https://example.com/first</link>
+      <guid>first-guid</guid>
+      <author>author@example.com</author>
+      <pubDate>Fri, 15 May 2026 12:00:00 GMT</pubDate>
+      <category>python</category>
+      <description><![CDATA[<p>First summary</p>]]></description>
+      <content:encoded><![CDATA[<p>First body</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>Second Entry</title>
+      <link>https://example.com/second</link>
+      <guid>second-guid</guid>
+      <description><![CDATA[<p>Second summary</p>]]></description>
+    </item>
+  </channel>
+</rss>
