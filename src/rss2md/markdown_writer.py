@@ -1,5 +1,6 @@
 import hashlib
 import re
+from dataclasses import dataclass
 from datetime import timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -8,6 +9,13 @@ import yaml
 
 from rss2md.html_conversion import to_markdown
 from rss2md.models import FeedEntry
+
+
+@dataclass(slots=True)
+class WriteResult:
+    paths: list[Path]
+    created: int
+    updated: int
 
 
 def _slugify(value: str) -> str:
@@ -61,13 +69,19 @@ def render_entry_markdown(entry: FeedEntry) -> str:
     return f"---\n{frontmatter}\n---\n\n{body}\n"
 
 
-def write_entries(entries: list[FeedEntry], output_dir: Path) -> list[Path]:
+def write_entries(entries: list[FeedEntry], output_dir: Path) -> WriteResult:
     output_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
+    created = 0
+    updated = 0
 
     for entry in entries:
         path = output_dir / resolve_entry_filename(entry)
+        if path.exists():
+            updated += 1
+        else:
+            created += 1
         path.write_text(render_entry_markdown(entry), encoding="utf-8")
         written.append(path)
 
-    return written
+    return WriteResult(paths=written, created=created, updated=updated)

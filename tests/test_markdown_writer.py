@@ -90,10 +90,48 @@ def test_write_entries_overwrites_existing_file(tmp_path):
     output = tmp_path / "entry.md"
     output.write_text("old content", encoding="utf-8")
 
-    paths = write_entries([entry], tmp_path)
+    result = write_entries([entry], tmp_path)
 
-    assert paths == [output]
+    assert result.paths == [output]
+    assert result.created == 0
+    assert result.updated == 1
     assert output.read_text(encoding="utf-8").endswith("New body\n")
+
+
+def test_write_entries_reports_created_and_updated_counts(tmp_path):
+    from rss2md.markdown_writer import write_entries
+
+    created_entry = FeedEntry(
+        title="Created Entry",
+        link="https://example.com/created",
+        author=None,
+        published_at=None,
+        guid="created-guid",
+        tags=[],
+        summary=None,
+        content_html="<p>Created body</p>",
+        source_feed_title="Feed",
+    )
+    updated_entry = FeedEntry(
+        title="Updated Entry",
+        link="https://example.com/updated",
+        author=None,
+        published_at=None,
+        guid="updated-guid",
+        tags=[],
+        summary=None,
+        content_html="<p>Updated body</p>",
+        source_feed_title="Feed",
+    )
+
+    existing_path = tmp_path / "updated-entry.md"
+    existing_path.write_text("old content", encoding="utf-8")
+
+    result = write_entries([created_entry, updated_entry], tmp_path)
+
+    assert result.created == 1
+    assert result.updated == 1
+    assert result.paths == [tmp_path / "created-entry.md", existing_path]
 
 
 def test_body_selection_prefers_content_html_over_summary():
