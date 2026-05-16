@@ -22,6 +22,19 @@ def _slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
+def _strip_cdata(value: str) -> str:
+    match = re.fullmatch(r"\s*<!\[CDATA\[(.*)\]\]>\s*", value, re.DOTALL)
+    if match:
+        return match.group(1)
+
+    return value
+
+
+def _remove_name_line(value: str) -> str:
+    value = re.sub(r"(?is)<br\s*/?>\s*name:\s*[^<]*(?=<br\s*/?>|$)", "", value)
+    return re.sub(r"(?im)^[ \t]*name:\s*.*(?:\n|$)", "", value)
+
+
 def _fallback_identifier(entry: FeedEntry) -> str:
     if entry.guid:
         return entry.guid
@@ -48,7 +61,7 @@ def resolve_entry_filename(entry: FeedEntry) -> str:
 
 def _frontmatter(entry: FeedEntry) -> dict[str, object]:
     data: dict[str, object] = {}
-    for key in ("title", "link", "author", "guid", "source_feed_title"):
+    for key in ("link", "author", "guid", "source_feed_title"):
         value = getattr(entry, key)
         if value:
             data[key] = value
@@ -64,9 +77,22 @@ def _frontmatter(entry: FeedEntry) -> dict[str, object]:
 
 def render_entry_markdown(entry: FeedEntry) -> str:
     body_source = entry.content_html or entry.summary or ""
-    body = to_markdown(body_source)
+    body = to_markdown(_remove_name_line(body_source))
+    book_description = ""
+    if entry.book_description:
+        book_description = to_markdown(_remove_name_line(_strip_cdata(entry.book_description)))
+
+    sections: list[str] = []
+    if entry.title:
+        sections.append(f"# {entry.title}")
+    if book_description:
+        sections.append(book_description)
+    if body:
+        sections.append(body)
+
+    rendered_body = "\n\n".join(sections)
     frontmatter = yaml.safe_dump(_frontmatter(entry), sort_keys=False).strip()
-    return f"---\n{frontmatter}\n---\n\n{body}\n"
+    return f"---\n{frontmatter}\n---\n\n{rendered_body}\n"
 
 
 def write_entries(entries: list[FeedEntry], output_dir: Path) -> WriteResult:

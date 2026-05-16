@@ -58,6 +58,7 @@ def load_feed(source: str) -> tuple[Feed, list[FeedEntry]]:
             published_at=_normalize_datetime(item.get("published")),
             guid=item.get("id") or item.get("guid"),
             tags=[tag["term"] for tag in item.get("tags", []) if tag.get("term")],
+            book_description=item.get("book_description"),
             summary=item.get("summary"),
             content_html=(item.get("content") or [{}])[0].get("value"),
             source_feed_title=feed.title,

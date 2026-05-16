@@ -10,6 +10,7 @@
       <author>author@example.com</author>
       <pubDate>Fri, 15 May 2026 12:00:00 GMT</pubDate>
       <category>python</category>
+      <book_description><![CDATA[First book description]]></book_description>
       <description><![CDATA[<p>First summary</p>]]></description>
       <content:encoded><![CDATA[<p>First body</p>]]></content:encoded>
     </item>

@@ -16,7 +16,9 @@ def test_load_feed_parses_local_fixture():
     assert feed.title == "Sample Feed"
     assert len(entries) == 2
     assert entries[0].title == "First Entry"
+    assert entries[0].book_description == "First book description"
     assert entries[0].source_feed_title == "Sample Feed"
+    assert entries[1].book_description is None
 
 
 def test_feed_entry_model_holds_normalized_fields():
@@ -29,6 +31,7 @@ def test_feed_entry_model_holds_normalized_fields():
         published_at=published_at,
         guid="abc123",
         tags=["rss", "python"],
+        book_description="Book description",
         summary="Summary",
         content_html="<p>Body</p>",
         source_feed_title="Example Feed",
@@ -44,6 +47,7 @@ def test_feed_entry_model_holds_normalized_fields():
     assert entry.published_at == published_at
     assert entry.guid == "abc123"
     assert entry.tags == ["rss", "python"]
+    assert entry.book_description == "Book description"
     assert entry.summary == "Summary"
     assert entry.content_html == "<p>Body</p>"
     assert entry.source_feed_title == "Example Feed"
@@ -59,6 +63,7 @@ def test_feed_entry_defaults_optional_fields():
     )
 
     assert entry.tags == []
+    assert entry.book_description is None
     assert entry.summary is None
     assert entry.content_html is None
     assert entry.source_feed_title is None
@@ -115,3 +120,12 @@ def test_parse_failure_raises_clear_error(tmp_path):
 
     with pytest.raises(FeedLoadError, match="Unable to parse feed"):
         load_feed(str(bad))
+
+
+def test_load_feed_preserves_cdata_text_for_book_description():
+    from rss2md.feed_loader import load_feed
+
+    feed, entries = load_feed("tests/fixtures/sample_feed.xml")
+
+    assert feed.title == "Sample Feed"
+    assert entries[0].book_description == "First book description"

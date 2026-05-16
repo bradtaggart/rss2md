@@ -17,6 +17,7 @@ class FeedEntry:
     published_at: datetime | None
     guid: str | None
     tags: list[str] = field(default_factory=list)
+    book_description: str | None = None
     summary: str | None = None
     content_html: str | None = None
     source_feed_title: str | None = None
