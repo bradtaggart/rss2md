@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 import feedparser
@@ -10,14 +9,6 @@ from rss2md.models import Feed, FeedEntry
 
 class FeedLoadError(Exception):
     pass
-
-
-def _normalize_datetime(value: str | None) -> datetime | None:
-    if not value:
-        return None
-
-    parsed = parsedate_to_datetime(value)
-    return parsed.astimezone(timezone.utc)
 
 
 def _fetch_remote_text(url: str) -> str:
@@ -55,7 +46,11 @@ def load_feed(source: str) -> tuple[Feed, list[FeedEntry]]:
             title=item.get("title"),
             link=item.get("link"),
             author=item.get("author"),
-            published_at=_normalize_datetime(item.get("published")),
+            published_at=(
+                datetime(*item.published_parsed[:6], tzinfo=timezone.utc)
+                if item.get("published_parsed")
+                else None
+            ),
             guid=item.get("id") or item.get("guid"),
             tags=[tag["term"] for tag in item.get("tags", []) if tag.get("term")],
             book_description=item.get("book_description"),
